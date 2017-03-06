@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io();
+            var name = Math.random().toString(36).substring(7);
+            var enabled = true;
+
+            window.addEventListener('touchstart', buzz);
+
+            function buzz() {
+                if (!enabled)
+                    return;
+
+                socket.emit('buzz', { name: name });
+                document.getElementById('buzz').disabled = true;
+            }
+
+            function reset() {
+                enabled = true;
+                document.getElementById('buzz').disabled = false;
+                document.getElementById('buzz').classList.remove("Winner");
+                document.getElementById('buzz').classList.remove("Loser");
+                document.getElementById('buzz').innerHTML = "Buzz";
+            }
+
+            socket.on('winner', function(data) {
+                if (!enabled) return;
+                enabled = false;
+                document.getElementById('buzz').disabled = true;
+                var winOrLose = data.name === name ? 'Winner' : 'Loser';
+                document.getElementById('buzz').classList.add(winOrLose);
+                document.getElementById('buzz').innerHTML = winOrLose;
+                setTimeout(reset, 5000);
+            });
+            socket.on('error', console.error.bind(console));
+            socket.on('message', console.log.bind(console));
+
+        </script>
+        <style>
+        body {
+            margin: 0;
+        }
+        #buzz {
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            box-sizing: border-box;
+            font-size: 100px;
+            border-radius: 0;
+            -webkit-appearance: none;
+        }
+        .Winner {
+            background: #2ecc71;
+        }
+        .Loser {
+            background: #e74c3c;
+        }
+        </style>
+    </head>
+    <body>
+        <button id="buzz" onclick="buzz()">Buzz</button>
+    </body>
+</html>
